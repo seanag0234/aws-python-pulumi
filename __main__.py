@@ -10,7 +10,7 @@ DynamoDB.initialize(db_params)
 test_methods = [
     LambdaMethodParams(
         'AnyMethod',
-        'ANY',
+        'GET',
         LambdaParams('HelloWorldFunction', 'hello_world.handler', 'HelloWorldFuncPermission'),
         'TestLambdaIntegration'
     )
