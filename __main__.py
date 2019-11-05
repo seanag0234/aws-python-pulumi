@@ -8,7 +8,7 @@ test_methods = [
     LambdaMethodParams(
         'AnyMethod',
         'ANY',
-        LambdaParams('HelloWorldFunction', 'hello_world.handler', 'TestLambdaPermission'),
+        LambdaParams('HelloWorldFunction', 'hello_world.handler', 'HelloWorldFuncPermission'),
         'TestLambdaIntegration'
     )
 ]
