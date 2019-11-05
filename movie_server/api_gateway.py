@@ -5,7 +5,12 @@ import pulumi_aws
 from pulumi_aws import apigateway, lambda_
 
 from movie_server.lambda_function import LambdaFunction
-from .iam import *
+
+
+class ResourceParams:
+    def __init__(self, name: str, path_part: str):
+        self.name = name
+        self.path_part = path_part
 
 
 class APIGateway:
@@ -21,23 +26,8 @@ class APIGateway:
             resource_name="TestAPI",
             opts=resource_options,
         )
-        APIGateway.create_resource_with_method(api, 'TestResource')
-
-    @staticmethod
-    def create_resource_with_method(api: apigateway.RestApi, resource_name: str) -> None:
-        test_resource = apigateway.Resource(
-            resource_name=resource_name,
-            path_part="test",
-            rest_api=api.id,
-            parent_id=api.root_resource_id
-        )
-        test_method = apigateway.Method(
-            resource_name='AnyMethod',
-            authorization='NONE',
-            http_method='ANY',
-            rest_api=api.id,
-            resource_id=test_resource.id
-        )
+        resource = APIGateway.create_resource(api, 'TestResource', 'test')
+        method = APIGateway.create_method(api, resource, 'AnyMethod', 'ANY')
 
         hello_world_fn = LambdaFunction.create_lambda_function('HelloWorldFunction', 'hello_world.handler')
 
@@ -54,10 +44,31 @@ class APIGateway:
         apigateway.Integration(
             resource_name="TestLambdaIntegration",
             rest_api=api.id,
-            resource_id=test_resource.id,
+            resource_id=resource.id,
             integration_http_method='POST',
-            http_method=test_method.http_method,
+            http_method=method.http_method,
             type="AWS_PROXY",
             uri=hello_world_fn.invoke_arn
         )
 
+    @staticmethod
+    def create_resource(api: apigateway.RestApi, name: str, path_part: str) -> apigateway.Resource:
+        resource = apigateway.Resource(
+            resource_name=name,
+            path_part=path_part,
+            rest_api=api.id,
+            parent_id=api.root_resource_id
+        )
+        return resource
+
+    @staticmethod
+    def create_method(api: apigateway.RestApi, resource: apigateway.Resource, name: str, http_method: str,
+                      authorization='NONE') -> apigateway.Method:
+        method = apigateway.Method(
+            resource_name=name,
+            authorization=authorization,
+            http_method=http_method,
+            rest_api=api.id,
+            resource_id=resource.id
+        )
+        return method
