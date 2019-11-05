@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 import pulumi
 from pulumi_aws import apigateway, lambda_
@@ -6,17 +6,49 @@ from pulumi_aws import apigateway, lambda_
 from movie_server.lambda_function import LambdaFunction
 
 
+class LambdaParams:
+    def __init__(self, name: str, handler: str, permission_name: str):
+        self.name = name
+        self.handler = handler
+        self.permission_name = permission_name
+
+
+class APIMethodParams:
+    def __init__(self, name: str, http_method: str, lambda_params: LambdaParams, api_integration_name: str):
+        self.name = name
+        self.http_method = http_method
+        self.lambda_params = lambda_params
+        self.api_integration_name = api_integration_name
+
+
+class APIResource:
+    def __init__(self, name: str, path_part: str, methods: List[APIMethodParams]):
+        self.path_part = path_part
+        self.name = name
+        self.methods = methods
+
+
 class APIGateway:
     @staticmethod
-    def initialize(api_name: str, dependencies: List[pulumi.Resource] = None):
+    def initialize(api_name: str, resources: List[APIResource], dependencies: List[pulumi.Resource] = None):
         if dependencies is None:
             dependencies = []
-        api = APIGateway.create_api(api_name, dependencies)
-        resource = APIGateway.create_resource(api, 'TestResource', 'test')
-        method = APIGateway.create_method(api, resource, 'AnyMethod', 'ANY')
-        hello_world_fn = LambdaFunction.create_lambda_function('HelloWorldFunction', 'hello_world.handler')
-        LambdaFunction.create_api_gateway_permission(api, 'TestLambdaPermission', hello_world_fn.name)
-        APIGateway.create_lambda_integration('TestLambdaIntegration', api, hello_world_fn, method, resource)
+
+        for resource in resources:
+            api = APIGateway.create_api(api_name, dependencies)
+            created_resource = APIGateway.create_resource(api, resource.name, resource.path_part)
+            for method in resource.methods:
+                created_method = APIGateway.create_method(api, created_resource, method.name, method.http_method)
+                lambda_params = method.lambda_params
+                lambda_function = LambdaFunction.create_lambda_function(lambda_params.name, lambda_params.handler)
+                LambdaFunction.create_api_gateway_permission(api, lambda_params.permission_name, lambda_function.name)
+                APIGateway.create_lambda_integration(
+                    method.api_integration_name,
+                    api,
+                    lambda_function,
+                    created_method,
+                    created_resource
+                )
 
     @staticmethod
     def create_api(api_name, dependencies):
