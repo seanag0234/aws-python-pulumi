@@ -39,7 +39,7 @@ class APIGateway:
             resource_id=test_resource.id
         )
 
-        hello_world_fn = LambdaFunction.create_lambda_function('./movie_server/lambda_functions', 'HelloWorldFunction', 'hello_world.handler')
+        hello_world_fn = LambdaFunction.create_lambda_function('HelloWorldFunction', 'hello_world.handler')
 
         source_arn = pulumi.Output.concat(api.execution_arn, '/*')
 
