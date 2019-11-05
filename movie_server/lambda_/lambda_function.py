@@ -3,7 +3,7 @@ import os
 import pulumi
 from pulumi_aws import lambda_, apigateway
 
-from movie_server.lambda_iam import lambda_role
+from movie_server.lambda_.iam import lambda_role
 
 
 class LambdaFunction:
@@ -31,6 +31,8 @@ class LambdaFunction:
     @staticmethod
     def create_api_gateway_permission(api: apigateway.RestApi, name: str,
                                       function_name: pulumi.Output[str]):
+
+        # noinspection PyTypeChecker
         source_arn = pulumi.Output.concat(api.execution_arn, '/*')
 
         LambdaFunction.create_permission(name, 'apigateway.amazonaws.com', function_name, source_arn)

@@ -2,7 +2,7 @@ import pulumi
 from pulumi_aws import apigateway, lambda_
 from pulumi_aws.apigateway import RestApi
 
-from movie_server.lambda_function import LambdaFunction
+from movie_server.lambda_.lambda_function import LambdaFunction
 from .params import *
 
 

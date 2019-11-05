@@ -1,8 +1,11 @@
-from movie_server.db import DB
 from movie_server.api.api_gateway import APIGateway
 from movie_server.api.params import *
+from movie_server.db.dynamo_db import DynamoDB
+from movie_server.db.movie_server_db import MovieServerDB
 
-DB.initialize()
+db_params = MovieServerDB.db_params()
+
+DynamoDB.initialize(db_params)
 
 test_methods = [
     LambdaMethodParams(
