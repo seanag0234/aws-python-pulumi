@@ -1,3 +1,5 @@
+from typing import List
+
 import pulumi
 from pulumi_aws import apigateway, lambda_
 
@@ -6,25 +8,26 @@ from movie_server.lambda_function import LambdaFunction
 
 class APIGateway:
     @staticmethod
-    def initialize(dependencies=None):
+    def initialize(api_name: str, dependencies: List[pulumi.Resource] = None):
         if dependencies is None:
             dependencies = []
+        api = APIGateway.create_api(api_name, dependencies)
+        resource = APIGateway.create_resource(api, 'TestResource', 'test')
+        method = APIGateway.create_method(api, resource, 'AnyMethod', 'ANY')
+        hello_world_fn = LambdaFunction.create_lambda_function('HelloWorldFunction', 'hello_world.handler')
+        LambdaFunction.create_api_gateway_permission(api, 'TestLambdaPermission', hello_world_fn.name)
+        APIGateway.create_lambda_integration('TestLambdaIntegration', api, hello_world_fn, method, resource)
+
+    @staticmethod
+    def create_api(api_name, dependencies):
         resource_options = pulumi.ResourceOptions(
             depends_on=dependencies
         )
         api = apigateway.RestApi(
-            # policy=api_gateway_role_policy.policy,
-            resource_name="TestAPI",
+            resource_name=api_name,
             opts=resource_options,
         )
-        resource = APIGateway.create_resource(api, 'TestResource', 'test')
-        method = APIGateway.create_method(api, resource, 'AnyMethod', 'ANY')
-
-        hello_world_fn = LambdaFunction.create_lambda_function('HelloWorldFunction', 'hello_world.handler')
-
-        LambdaFunction.create_api_gateway_permission(api, 'TestLambdaPermission', hello_world_fn.name)
-
-        APIGateway.create_lambda_integration('TestLambdaIntegration', api, hello_world_fn, method, resource)
+        return api
 
     @staticmethod
     def create_lambda_integration(name: str, api: apigateway.RestApi, lambda_function: lambda_.Function,
