@@ -22,24 +22,21 @@ class APIGateway:
 
         hello_world_fn = LambdaFunction.create_lambda_function('HelloWorldFunction', 'hello_world.handler')
 
-        source_arn = pulumi.Output.concat(api.execution_arn, '/*')
+        LambdaFunction.create_api_gateway_permission(api, 'TestLambdaPermission', hello_world_fn.name)
 
-        lambda_.Permission(
-            resource_name="TestLambdaPermission",
-            statement_id='AllowExecutionFromAPIGateway',
-            action="lambda:InvokeFunction",
-            function=hello_world_fn.name,
-            principal="apigateway.amazonaws.com",
-            source_arn=source_arn
-        )
+        APIGateway.create_lambda_integration('TestLambdaIntegration', api, hello_world_fn, method, resource)
+
+    @staticmethod
+    def create_lambda_integration(name: str, api: apigateway.RestApi, lambda_function: lambda_.Function,
+                                  method: apigateway.Method, resource: apigateway.Resource):
         apigateway.Integration(
-            resource_name="TestLambdaIntegration",
+            resource_name=name,
             rest_api=api.id,
             resource_id=resource.id,
             integration_http_method='POST',
             http_method=method.http_method,
             type="AWS_PROXY",
-            uri=hello_world_fn.invoke_arn
+            uri=lambda_function.invoke_arn
         )
 
     @staticmethod

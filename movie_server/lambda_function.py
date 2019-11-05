@@ -1,7 +1,7 @@
 import os
 
 import pulumi
-from pulumi_aws import lambda_
+from pulumi_aws import lambda_, apigateway
 
 from movie_server.iam import lambda_role
 
@@ -28,4 +28,19 @@ class LambdaFunction:
 
         return lambda_function
 
+    @staticmethod
+    def create_api_gateway_permission(api: apigateway.RestApi, name: str,
+                                      function_name: pulumi.Output[str]):
+        source_arn = pulumi.Output.concat(api.execution_arn, '/*')
 
+        LambdaFunction.create_permission(name, 'apigateway.amazonaws.com', function_name, source_arn)
+
+    @staticmethod
+    def create_permission(name: str, principal: str, function_name: pulumi.Output[str], source_arn: pulumi.Output[str]):
+        lambda_.Permission(
+            resource_name=name,
+            action="lambda:InvokeFunction",
+            function=function_name,
+            principal=principal,
+            source_arn=source_arn
+        )
