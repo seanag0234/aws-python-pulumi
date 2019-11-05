@@ -1,4 +1,4 @@
-from poc.api.api_gateway import APIGateway
+from poc.api.api_gateway_initializer import APIGatewayInitializer
 from poc.api.params import *
 from poc.db.dynamo_db import DynamoDB
 from poc.db.test_db import TestDB
@@ -20,4 +20,6 @@ test_resource = APIResourceParams('TestResource', 'test', test_methods)
 api_resources = [
     test_resource
 ]
-APIGateway.initialize('TestAPI', api_resources)
+
+api_deployer = APIGatewayInitializer.initialize('TestAPI', api_resources)
+api_deployer.deploy('TestDeployment', 'test-stage')

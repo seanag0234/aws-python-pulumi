@@ -2,41 +2,47 @@ import pulumi
 from pulumi_aws import apigateway, lambda_
 from pulumi_aws.apigateway import RestApi
 
+from poc.api.api_gateway_deployer import APIGatewayDeployer
 from poc.lambda_.lambda_function import LambdaFunction
 from .params import *
 
 
-class APIGateway:
+class APIGatewayInitializer:
     @staticmethod
     def initialize(
             api_name: str,
             resources: List[APIResourceParams],
             dependencies: List[pulumi.Resource] = None
-    ) -> apigateway.RestApi:
+    ) -> APIGatewayDeployer:
         if dependencies is None:
             dependencies = []
 
-        api: RestApi = APIGateway.create_api(api_name, dependencies)
-        APIGateway.create_resources(api, resources)
+        api: RestApi = APIGatewayInitializer.create_api(api_name, dependencies)
+        integrations = APIGatewayInitializer.create_resources(api, resources)
 
-        return api
+        return APIGatewayDeployer(api, integrations)
 
     @staticmethod
-    def create_resources(api: apigateway.RestApi, resources: List[APIResourceParams]) -> None:
+    def create_resources(api: apigateway.RestApi, resources: List[APIResourceParams]) -> List[apigateway.Integration]:
+        integrations: List[apigateway.Integration] = []
         for resource in resources:
-            created_resource = APIGateway.create_resource(api, resource.name, resource.path_part)
+            created_resource = APIGatewayInitializer.create_resource(api, resource.name, resource.path_part)
             for method in resource.methods:
-                created_method = APIGateway.create_method(api, created_resource, method.name, method.http_method)
+                created_method = APIGatewayInitializer.create_method(api, created_resource, method.name,
+                                                                     method.http_method)
                 lambda_params = method.lambda_params
                 lambda_function = LambdaFunction.create_lambda_function(lambda_params.name, lambda_params.handler)
                 LambdaFunction.create_api_gateway_permission(api, lambda_params.permission_name, lambda_function.name)
-                APIGateway.create_lambda_integration(
+                new_integration = APIGatewayInitializer.create_lambda_integration(
                     method.api_integration_name,
                     api,
                     lambda_function,
                     created_method,
                     created_resource
                 )
+                integrations.append(new_integration)
+
+        return integrations
 
     @staticmethod
     def create_api(api_name: str, dependencies: List[pulumi.Resource]) -> apigateway.RestApi:
@@ -56,8 +62,8 @@ class APIGateway:
             lambda_function: lambda_.Function,
             method: apigateway.Method,
             resource: apigateway.Resource
-    ) -> None:
-        apigateway.Integration(
+    ) -> apigateway.Integration:
+        integration = apigateway.Integration(
             resource_name=name,
             rest_api=api.id,
             resource_id=resource.id,
@@ -66,6 +72,7 @@ class APIGateway:
             type="AWS_PROXY",
             uri=lambda_function.invoke_arn
         )
+        return integration
 
     @staticmethod
     def create_resource(api: apigateway.RestApi, name: str, path_part: str) -> apigateway.Resource:
