@@ -20,8 +20,12 @@ class APIGateway:
             resource_name="TestAPI",
             opts=resource_options,
         )
+        APIGateway.create_resource_with_method(api, 'TestResource')
+
+    @staticmethod
+    def create_resource_with_method(api: apigateway.RestApi, resource_name: str) -> None:
         test_resource = apigateway.Resource(
-            resource_name='TestResource',
+            resource_name=resource_name,
             path_part="test",
             rest_api=api.id,
             parent_id=api.root_resource_id
@@ -33,20 +37,9 @@ class APIGateway:
             rest_api=api.id,
             resource_id=test_resource.id
         )
-        dir_path = './movie_server/lambda_functions'
-        if not os.path.isdir(dir_path):
-            raise Exception(os.getcwd())
 
-        hello_world_fn = lambda_.Function(
-            'HelloWorldFunction',
-            role=lambda_role.arn,
-            runtime='python3.7',
-            handler="hello_world.handler",
-            code=pulumi.AssetArchive({
-                '.': pulumi.FileArchive(dir_path)
-            })
+        hello_world_fn = APIGateway.create_lambda_function('./movie_server/lambda_functions', 'HelloWorldFunction', 'hello_world.handler')
 
-        )
         source_arn = pulumi.Output.concat(api.execution_arn, '/*')
 
         lambda_.Permission(
@@ -57,7 +50,6 @@ class APIGateway:
             principal="apigateway.amazonaws.com",
             source_arn=source_arn
         )
-
         apigateway.Integration(
             resource_name="TestLambdaIntegration",
             rest_api=api.id,
@@ -67,3 +59,19 @@ class APIGateway:
             type="AWS_PROXY",
             uri=hello_world_fn.invoke_arn
         )
+
+    @staticmethod
+    def create_lambda_function(file_path: str, function_name: str, handler: str) -> lambda_.Function:
+        dir_path = file_path
+        if not os.path.isdir(dir_path):
+            raise Exception(os.getcwd())
+        lambda_function = lambda_.Function(
+            function_name,
+            role=lambda_role.arn,
+            runtime='python3.7',
+            handler=handler,
+            code=pulumi.AssetArchive({
+                '.': pulumi.FileArchive(dir_path)
+            })
+        )
+        return lambda_function
