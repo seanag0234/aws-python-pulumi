@@ -12,7 +12,9 @@ class DynamoDB:
             protect=params.should_protect,
         )
 
-        table_attributes = [a.dict() for a in params.attributes]
+        table_attributes = [
+            a.dict() for a in params.attributes
+        ]
 
         global_secondary_indexes = [
             index.dict() for index in params.global_secondary_indexes
