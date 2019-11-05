@@ -5,7 +5,7 @@ from movie_server.api.params import *
 DB.initialize()
 
 test_methods = [
-    APIMethodParams(
+    LambdaMethodParams(
         'AnyMethod',
         'ANY',
         LambdaParams('HelloWorldFunction', 'hello_world.handler', 'TestLambdaPermission'),

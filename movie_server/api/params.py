@@ -8,7 +8,7 @@ class LambdaParams:
         self.permission_name = permission_name
 
 
-class APIMethodParams:
+class LambdaMethodParams:
     def __init__(self, name: str, http_method: str, lambda_params: LambdaParams, api_integration_name: str):
         self.name = name
         self.http_method = http_method
@@ -17,7 +17,7 @@ class APIMethodParams:
 
 
 class APIResourceParams:
-    def __init__(self, name: str, path_part: str, methods: List[APIMethodParams]):
+    def __init__(self, name: str, path_part: str, methods: List[LambdaMethodParams]):
         self.path_part = path_part
         self.name = name
         self.methods = methods
