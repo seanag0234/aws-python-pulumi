@@ -9,11 +9,11 @@ class APIGatewayDeployer:
         self.api = api
         self.api_integrations = api_integrations
 
-    def deploy(self, deployment_name: str, stage_name):
+    def deploy(self, deployment_name: str, stage_name: str) -> apigateway.Deployment:
         resource_options = pulumi.ResourceOptions(
             depends_on=self.api_integrations
         )
-        apigateway.Deployment(
+        return apigateway.Deployment(
             resource_name=deployment_name,
             rest_api=self.api.id,
             stage_name=stage_name,
