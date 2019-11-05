@@ -2,7 +2,7 @@ import pulumi
 from pulumi_aws import dynamodb
 from pulumi_aws.dynamodb import Table
 
-from movie_server.db.params import DynamoDBParams
+from poc.db.params import DynamoDBParams
 
 
 class DynamoDB:

@@ -1,9 +1,9 @@
-from movie_server.api.api_gateway import APIGateway
-from movie_server.api.params import *
-from movie_server.db.dynamo_db import DynamoDB
-from movie_server.db.movie_server_db import MovieServerDB
+from poc.api.api_gateway import APIGateway
+from poc.api.params import *
+from poc.db.dynamo_db import DynamoDB
+from poc.db.test_db import TestDB
 
-db_params = MovieServerDB.db_params()
+db_params = TestDB.db_params()
 
 DynamoDB.initialize(db_params)
 

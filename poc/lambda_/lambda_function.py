@@ -3,11 +3,11 @@ import os
 import pulumi
 from pulumi_aws import lambda_, apigateway
 
-from movie_server.lambda_.iam import lambda_role
+from poc.lambda_.iam import lambda_role
 
 
 class LambdaFunction:
-    _lambda_functions_dir = './movie_server/lambda_/functions'
+    _lambda_functions_dir = './poc/lambda_/functions'
 
     @staticmethod
     def create_lambda_function(function_name: str, handler: str) -> lambda_.Function:

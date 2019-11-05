@@ -1,7 +1,7 @@
-from movie_server.db.params import TableAttribute, GlobalSecondaryIndex, DynamoDBParams
+from poc.db.params import TableAttribute, GlobalSecondaryIndex, DynamoDBParams
 
 
-class MovieServerDB:
+class TestDB:
     @staticmethod
     def db_params():
         item_id = 'ItemID'
@@ -29,5 +29,3 @@ class MovieServerDB:
             should_protect=False
         )
         return db_params
-
-
