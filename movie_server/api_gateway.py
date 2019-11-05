@@ -1,7 +1,4 @@
-import os
-
 import pulumi
-import pulumi_aws
 from pulumi_aws import apigateway, lambda_
 
 from movie_server.lambda_function import LambdaFunction
