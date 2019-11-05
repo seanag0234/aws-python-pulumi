@@ -3,7 +3,7 @@ from poc.db.params import TableAttribute, GlobalSecondaryIndex, DynamoDBParams
 
 class TestDB:
     @staticmethod
-    def db_params():
+    def db_params() -> DynamoDBParams:
         item_id = 'ItemID'
         user_email = 'UserEmail'
         table_attributes = [
