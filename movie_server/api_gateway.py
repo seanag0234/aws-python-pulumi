@@ -7,12 +7,6 @@ from pulumi_aws import apigateway, lambda_
 from movie_server.lambda_function import LambdaFunction
 
 
-class ResourceParams:
-    def __init__(self, name: str, path_part: str):
-        self.name = name
-        self.path_part = path_part
-
-
 class APIGateway:
     @staticmethod
     def initialize(dependencies=None):
