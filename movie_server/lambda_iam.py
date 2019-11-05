@@ -1,4 +1,4 @@
-from pulumi_aws import config, iam
+from pulumi_aws import iam
 
 lambda_role = iam.Role(
     'LambdaRole',
@@ -32,43 +32,4 @@ lambda_role_policy = iam.RolePolicy(
             "Resource": "arn:aws:logs:*:*:*"
         }]
     }"""
-)
-
-api_gateway_role = iam.Role(
-    'ApiGatewayRole',
-
-    assume_role_policy=
-    """
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Action": "sts:AssumeRole",
-          "Principal": {
-            "Service": "apigateway.amazonaws.com"
-          },
-          "Effect": "Allow",
-          "Sid": ""
-        }
-      ]
-    }
-    """.strip()
-)
-
-api_gateway_role_policy = iam.RolePolicy(
-    'ApiGatewayRolePolicy',
-    role=api_gateway_role.id,
-    policy=
-    """
-    {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": "lambda:InvokeFunction",
-                "Resource": "*"
-            }
-        ]
-    } 
-   """.strip()
 )

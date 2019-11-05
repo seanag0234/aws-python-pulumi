@@ -3,7 +3,7 @@ import os
 import pulumi
 from pulumi_aws import lambda_, apigateway
 
-from movie_server.iam import lambda_role
+from movie_server.lambda_iam import lambda_role
 
 
 class LambdaFunction:
