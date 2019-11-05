@@ -4,6 +4,7 @@ import pulumi
 import pulumi_aws
 from pulumi_aws import apigateway, lambda_
 
+from movie_server.lambda_function import LambdaFunction
 from .iam import *
 
 
@@ -38,7 +39,7 @@ class APIGateway:
             resource_id=test_resource.id
         )
 
-        hello_world_fn = APIGateway.create_lambda_function('./movie_server/lambda_functions', 'HelloWorldFunction', 'hello_world.handler')
+        hello_world_fn = LambdaFunction.create_lambda_function('./movie_server/lambda_functions', 'HelloWorldFunction', 'hello_world.handler')
 
         source_arn = pulumi.Output.concat(api.execution_arn, '/*')
 
@@ -60,18 +61,3 @@ class APIGateway:
             uri=hello_world_fn.invoke_arn
         )
 
-    @staticmethod
-    def create_lambda_function(file_path: str, function_name: str, handler: str) -> lambda_.Function:
-        dir_path = file_path
-        if not os.path.isdir(dir_path):
-            raise Exception(os.getcwd())
-        lambda_function = lambda_.Function(
-            function_name,
-            role=lambda_role.arn,
-            runtime='python3.7',
-            handler=handler,
-            code=pulumi.AssetArchive({
-                '.': pulumi.FileArchive(dir_path)
-            })
-        )
-        return lambda_function
