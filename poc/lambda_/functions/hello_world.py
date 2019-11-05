@@ -1,6 +1,12 @@
+import json
+
+
 def handler(event, context):
+    body = {
+        'response': 'Hi there!'
+    }
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
-        'body': '"Hi from Python api_gateway"'
+        'body': json.dumps(body)
     }
