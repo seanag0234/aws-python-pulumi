@@ -1,14 +1,19 @@
 from movie_server.db import DB
-from movie_server.api_gateway import APIGateway, APIResource, APIMethodParams, LambdaParams
+from movie_server.api.api_gateway import APIGateway
+from movie_server.api.params import *
 
 DB.initialize()
 
 test_methods = [
-    APIMethodParams('AnyMethod', 'ANY', LambdaParams('HelloWorldFunction', 'hello_world.handler', 'TestLambdaPermission'),
-                    'TestLambdaIntegration')
+    APIMethodParams(
+        'AnyMethod',
+        'ANY',
+        LambdaParams('HelloWorldFunction', 'hello_world.handler', 'TestLambdaPermission'),
+        'TestLambdaIntegration'
+    )
 ]
 
-test_resource = APIResource('TestResource', 'test', test_methods)
+test_resource = APIResourceParams('TestResource', 'test', test_methods)
 api_resources = [
     test_resource
 ]

@@ -1,41 +1,29 @@
-from typing import List, Dict
-
 import pulumi
 from pulumi_aws import apigateway, lambda_
+from pulumi_aws.apigateway import RestApi
 
 from movie_server.lambda_function import LambdaFunction
-
-
-class LambdaParams:
-    def __init__(self, name: str, handler: str, permission_name: str):
-        self.name = name
-        self.handler = handler
-        self.permission_name = permission_name
-
-
-class APIMethodParams:
-    def __init__(self, name: str, http_method: str, lambda_params: LambdaParams, api_integration_name: str):
-        self.name = name
-        self.http_method = http_method
-        self.lambda_params = lambda_params
-        self.api_integration_name = api_integration_name
-
-
-class APIResource:
-    def __init__(self, name: str, path_part: str, methods: List[APIMethodParams]):
-        self.path_part = path_part
-        self.name = name
-        self.methods = methods
+from .params import *
 
 
 class APIGateway:
     @staticmethod
-    def initialize(api_name: str, resources: List[APIResource], dependencies: List[pulumi.Resource] = None):
+    def initialize(
+            api_name: str,
+            resources: List[APIResourceParams],
+            dependencies: List[pulumi.Resource] = None
+    ) -> apigateway.RestApi:
         if dependencies is None:
             dependencies = []
 
+        api: RestApi = APIGateway.create_api(api_name, dependencies)
+        APIGateway.create_resources(api, resources)
+
+        return api
+
+    @staticmethod
+    def create_resources(api: apigateway.RestApi, resources: List[APIResourceParams]) -> None:
         for resource in resources:
-            api = APIGateway.create_api(api_name, dependencies)
             created_resource = APIGateway.create_resource(api, resource.name, resource.path_part)
             for method in resource.methods:
                 created_method = APIGateway.create_method(api, created_resource, method.name, method.http_method)
@@ -51,7 +39,7 @@ class APIGateway:
                 )
 
     @staticmethod
-    def create_api(api_name, dependencies):
+    def create_api(api_name: str, dependencies: List[pulumi.Resource]) -> apigateway.RestApi:
         resource_options = pulumi.ResourceOptions(
             depends_on=dependencies
         )
@@ -62,8 +50,13 @@ class APIGateway:
         return api
 
     @staticmethod
-    def create_lambda_integration(name: str, api: apigateway.RestApi, lambda_function: lambda_.Function,
-                                  method: apigateway.Method, resource: apigateway.Resource):
+    def create_lambda_integration(
+            name: str,
+            api: apigateway.RestApi,
+            lambda_function: lambda_.Function,
+            method: apigateway.Method,
+            resource: apigateway.Resource
+    ) -> None:
         apigateway.Integration(
             resource_name=name,
             rest_api=api.id,
@@ -85,8 +78,13 @@ class APIGateway:
         return resource
 
     @staticmethod
-    def create_method(api: apigateway.RestApi, resource: apigateway.Resource, name: str, http_method: str,
-                      authorization='NONE') -> apigateway.Method:
+    def create_method(
+            api: apigateway.RestApi,
+            resource: apigateway.Resource,
+            name: str,
+            http_method: str,
+            authorization='NONE'
+    ) -> apigateway.Method:
         method = apigateway.Method(
             resource_name=name,
             authorization=authorization,
